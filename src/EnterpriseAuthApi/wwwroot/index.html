@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Enterprise OAuth Test Client</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Enterprise OAuth Test Client</h1>
+
+    <section class="card">
+      <h2>Sign up</h2>
+      <form id="signup-form">
+        <label>Username <input id="signup-username" required minlength="3" /></label>
+        <label>Password <input id="signup-password" required minlength="12" type="password" /></label>
+        <label>Department <input id="signup-department" value="General" /></label>
+        <button type="submit">Sign up</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Sign in</h2>
+      <form id="signin-form">
+        <label>Username <input id="signin-username" required /></label>
+        <label>Password <input id="signin-password" required type="password" /></label>
+        <button type="submit">Sign in</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Session</h2>
+      <div class="buttons">
+        <button id="refresh-btn">Refresh Access Token</button>
+        <button id="signout-btn">Sign out</button>
+      </div>
+      <p><strong>Status:</strong> <span id="status">Signed out</span></p>
+      <p><strong>Access token expiry:</strong> <span id="access-expiry">-</span></p>
+      <p><strong>Refresh token expiry:</strong> <span id="refresh-expiry">-</span></p>
+    </section>
+
+    <section class="card">
+      <h2>Protected API checks</h2>
+      <div class="buttons">
+        <button data-api="/finance/reports" data-method="GET">GET /finance/reports</button>
+        <button data-api="/finance/reports" data-method="POST">POST /finance/reports</button>
+        <button data-api="/hr/employees" data-method="GET">GET /hr/employees</button>
+        <button data-api="/admin/users" data-method="GET">GET /admin/users</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Output</h2>
+      <pre id="output"></pre>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
