@@ -7,7 +7,6 @@ using EnterpriseAuthApi.Models;
 using EnterpriseAuthApi.Security;
 using EnterpriseAuthApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -81,8 +80,49 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapPost("/auth/signup", async (
+    [FromBody] SignupRequest request,
+    IUserStore userStore,
+    IPasswordHasher passwordHasher,
+    ITokenService tokenService,
+    IRefreshTokenService refreshTokenService,
+    HttpContext httpContext,
+    CancellationToken cancellationToken) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Username) || request.Username.Length < 3)
+    {
+        return Results.BadRequest(new { error = "Username must be at least 3 characters." });
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 12)
+    {
+        return Results.BadRequest(new { error = "Password must be at least 12 characters." });
+    }
+
+    if (userStore.UsernameExists(request.Username))
+    {
+        return Results.Conflict(new { error = "Username already exists." });
+    }
+
+    var user = userStore.Create(
+        request.Username,
+        passwordHasher.HashPassword(request.Password),
+        string.IsNullOrWhiteSpace(request.Department) ? "General" : request.Department);
+
+    var (accessToken, accessTokenExpires, _) = tokenService.CreateAccessToken(user);
+    var (refreshRecord, refreshToken) = await refreshTokenService.CreateAsync(user, null, null, httpContext, cancellationToken);
+
+    return Results.Ok(new TokenResponse(
+        accessToken,
+        accessTokenExpires,
+        refreshToken,
+        refreshRecord.ExpiresAtUtc));
+});
 
 app.MapPost("/auth/login", async (
     [FromBody] LoginRequest request,
@@ -163,6 +203,21 @@ app.MapPost("/auth/refresh", async (
 
     var (accessToken, accessTokenExpires, _) = tokenService.CreateAccessToken(user);
     return Results.Ok(new TokenResponse(accessToken, accessTokenExpires, nextPlaintext, nextRecord.ExpiresAtUtc));
+});
+
+app.MapPost("/auth/signout", async (
+    [FromBody] RevokeRequest request,
+    IRefreshTokenService refreshTokenService,
+    CancellationToken cancellationToken) =>
+{
+    var lookup = await refreshTokenService.TryFindAsync(request.RefreshToken, cancellationToken);
+    if (!lookup.Success || lookup.ExistingToken is null)
+    {
+        return Results.NoContent();
+    }
+
+    await refreshTokenService.RevokeFamilyAsync(lookup.ExistingToken.FamilyId, "Signed out.", cancellationToken);
+    return Results.NoContent();
 });
 
 app.MapPost("/auth/revoke", async (

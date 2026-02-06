@@ -7,11 +7,14 @@ public interface IUserStore
 {
     AppUser? GetByUsername(string username);
     AppUser? GetById(Guid userId);
+    bool UsernameExists(string username);
+    AppUser Create(string username, string passwordHash, string department);
 }
 
 public sealed class InMemoryUserStore : IUserStore
 {
     private readonly Dictionary<string, AppUser> _users;
+    private readonly Lock _sync = new();
 
     public InMemoryUserStore(IPasswordHasher passwordHasher)
     {
@@ -37,8 +40,49 @@ public sealed class InMemoryUserStore : IUserStore
     }
 
     public AppUser? GetByUsername(string username)
-        => _users.GetValueOrDefault(username);
+    {
+        lock (_sync)
+        {
+            return _users.GetValueOrDefault(username);
+        }
+    }
 
     public AppUser? GetById(Guid userId)
-        => _users.Values.FirstOrDefault(u => u.Id == userId);
+    {
+        lock (_sync)
+        {
+            return _users.Values.FirstOrDefault(u => u.Id == userId);
+        }
+    }
+
+    public bool UsernameExists(string username)
+    {
+        lock (_sync)
+        {
+            return _users.ContainsKey(username);
+        }
+    }
+
+    public AppUser Create(string username, string passwordHash, string department)
+    {
+        lock (_sync)
+        {
+            if (_users.ContainsKey(username))
+            {
+                throw new InvalidOperationException("Username already exists.");
+            }
+
+            var user = new AppUser(
+                Guid.NewGuid(),
+                username,
+                passwordHash,
+                department,
+                ["Employee"],
+                ["finance:read"],
+                false);
+
+            _users[username] = user;
+            return user;
+        }
+    }
 }

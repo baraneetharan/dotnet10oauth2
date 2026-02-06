@@ -2,6 +2,8 @@ namespace EnterpriseAuthApi.Models;
 
 public sealed record LoginRequest(string Username, string Password);
 
+public sealed record SignupRequest(string Username, string Password, string Department);
+
 public sealed record RefreshRequest(string RefreshToken);
 
 public sealed record TokenResponse(

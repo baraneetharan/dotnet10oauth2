@@ -6,6 +6,7 @@ This repository contains a .NET 10 minimal API blueprint implementing OAuth 2.0 
 - Opaque refresh tokens with secure hashing-at-rest
 - Refresh token rotation with token family tracking and reuse-detection revocation
 - Policy-based authorization with role + claim + MFA requirements
+- Static web test client for sign up, sign in, refresh, sign out, and calling protected endpoints
 
 ## Project structure
 
@@ -15,6 +16,7 @@ This repository contains a .NET 10 minimal API blueprint implementing OAuth 2.0 
 - `src/EnterpriseAuthApi/Security/*` — password hashing and refresh token hashing
 - `src/EnterpriseAuthApi/Data/*` — in-memory stores for users and refresh tokens
 - `src/EnterpriseAuthApi/Configuration/*` — strongly typed options
+- `src/EnterpriseAuthApi/wwwroot/*` — static single-page test client
 
 ## Security notes
 
@@ -32,6 +34,8 @@ This repository contains a .NET 10 minimal API blueprint implementing OAuth 2.0 
 dotnet restore src/EnterpriseAuthApi/EnterpriseAuthApi.csproj
 dotnet run --project src/EnterpriseAuthApi/EnterpriseAuthApi.csproj
 ```
+
+Then open `https://localhost:<port>/` for the static test UI.
 
 ## Example demo users
 
