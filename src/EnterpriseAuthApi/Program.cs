@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using EnterpriseAuthApi.Authorization;
@@ -11,11 +12,36 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Enter ONLY the JWT token (without 'Bearer' prefix). Example: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9..."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<RefreshTokenOptions>(builder.Configuration.GetSection(RefreshTokenOptions.SectionName));
@@ -34,8 +60,8 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = true;
-        options.SaveToken = false;
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
+        options.SaveToken = true;
         options.IncludeErrorDetails = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -55,6 +81,31 @@ builder.Services
 
         options.Events = new JwtBearerEvents
         {
+            OnTokenValidated = async context =>
+            {
+                var revocationStore = context.HttpContext.RequestServices.GetRequiredService<ITokenRevocationStore>();
+                var userIdClaim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+                if (Guid.TryParse(userIdClaim, out var userId))
+                {
+                    var isUserRevoked = await revocationStore.IsUserRevokedAsync(userId);
+                    if (isUserRevoked)
+                    {
+                        context.Fail("User sessions have been revoked.");
+                        return;
+                    }
+                }
+
+                var jtiClaim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                if (!string.IsNullOrEmpty(jtiClaim))
+                {
+                    var isTokenRevoked = await revocationStore.IsTokenRevokedAsync(jtiClaim);
+                    if (isTokenRevoked)
+                    {
+                        context.Fail("Token has been revoked.");
+                    }
+                }
+            },
             OnChallenge = context =>
             {
                 context.Response.Headers.Append("WWW-Authenticate", "Bearer error=\"invalid_token\"");
@@ -69,6 +120,7 @@ builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddSingleton<ITokenHashingService, TokenHashingService>();
 builder.Services.AddSingleton<IUserStore, InMemoryUserStore>();
 builder.Services.AddSingleton<IRefreshTokenStore, InMemoryRefreshTokenStore>();
+builder.Services.AddSingleton<ITokenRevocationStore, InMemoryTokenRevocationStore>();
 builder.Services.AddSingleton<ITokenService, TokenService>();
 builder.Services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
 
@@ -79,8 +131,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -168,6 +223,7 @@ app.MapPost("/auth/refresh", async (
 app.MapPost("/auth/revoke", async (
     [FromBody] RevokeRequest request,
     IRefreshTokenService refreshTokenService,
+    ITokenRevocationStore revocationStore,
     CancellationToken cancellationToken) =>
 {
     var lookup = await refreshTokenService.TryFindAsync(request.RefreshToken, cancellationToken);
@@ -176,7 +232,12 @@ app.MapPost("/auth/revoke", async (
         return Results.NotFound();
     }
 
+    // Revoke the refresh token family
     await refreshTokenService.RevokeFamilyAsync(lookup.ExistingToken.FamilyId, "Manually revoked.", cancellationToken);
+
+    // Revoke all access tokens for this user by revoking the entire user session
+    await revocationStore.RevokeUserAsync(lookup.ExistingToken.UserId, cancellationToken);
+
     return Results.NoContent();
 }).RequireAuthorization(Policies.ManageUsers);
 

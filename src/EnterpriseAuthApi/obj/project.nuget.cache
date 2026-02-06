@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "dgSpecHash": "qdQrrAB/pxw=",
+  "success": true,
+  "projectFilePath": "D:\\baraneetharan\\antigravity\\dotnet10oauth2\\src\\EnterpriseAuthApi\\EnterpriseAuthApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.0-preview.2.25164.1\\microsoft.aspnetcore.authentication.jwtbearer.10.0.0-preview.2.25164.1.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.7.0\\microsoft.identitymodel.abstractions.8.7.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.7.0\\microsoft.identitymodel.jsonwebtokens.8.7.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.identitymodel.logging\\8.7.0\\microsoft.identitymodel.logging.8.7.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.identitymodel.protocols\\8.0.1\\microsoft.identitymodel.protocols.8.0.1.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.identitymodel.protocols.openidconnect\\8.0.1\\microsoft.identitymodel.protocols.openidconnect.8.0.1.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.7.0\\microsoft.identitymodel.tokens.8.7.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\swashbuckle.aspnetcore\\6.5.0\\swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.5.0\\swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.5.0\\swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.5.0\\swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512",
+    "C:\\Users\\baraneetharan.r\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.7.0\\system.identitymodel.tokens.jwt.8.7.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "EnterpriseAuthApi depends on Microsoft.AspNetCore.Authentication.JwtBearer (>= 10.0.0-preview.1.25120.5) but Microsoft.AspNetCore.Authentication.JwtBearer 10.0.0-preview.1.25120.5 was not found. Microsoft.AspNetCore.Authentication.JwtBearer 10.0.0-preview.2.25164.1 was resolved instead.",
+      "projectPath": "D:\\baraneetharan\\antigravity\\dotnet10oauth2\\src\\EnterpriseAuthApi\\EnterpriseAuthApi.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\baraneetharan\\antigravity\\dotnet10oauth2\\src\\EnterpriseAuthApi\\EnterpriseAuthApi.csproj",
+      "libraryId": "Microsoft.AspNetCore.Authentication.JwtBearer",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}
